@@ -13,8 +13,7 @@ use Illuminate\Support\Carbon;
 /**
  * App\Models\InvitationLink
  *
- * @property int $id id des Eintrags
- * @property Carbon $expiry_date Zeitpunkt an dem der Link abläuft
+ * @property Carbon|null $expiry_date Zeitpunkt an dem der Link abläuft
  * @property int $permission Rechte die ein User kriegt, wenn er mit dem Link auf den Speicherstand zugreift
  * @property int $save_id id des zugehörigen Speicherstands
  * @property string $token Token des Einladungslinks
@@ -35,7 +34,14 @@ use Illuminate\Support\Carbon;
  */
 class InvitationLink extends Model
 {
-    use HasFactory,Limitable;
+    use HasFactory, Limitable;
+
+
+    protected $primaryKey = "token";
+
+    protected $keyType = "string";
+
+    public $incrementing = false;
 
     /**
      * Attribute, welche Massen zuweisbar sind

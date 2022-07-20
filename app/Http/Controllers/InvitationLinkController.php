@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Helper\PermissionHelper;
 use App\Http\Resources\InvitationLinkResource;
 use App\Models\InvitationLink;
 use App\Models\Save;
@@ -39,15 +40,15 @@ class InvitationLinkController extends Controller
      * Erstellt eine neue InvitationLink Instanz
      * @param Request $request Die aktuelle Request instanz
      * @param TokenService $tokenService Dependency Injection
-     * @return Response Code 201 mit Location Header beim erfolgreichen Anlegen der Resource
+     * @return \Illuminate\Http\RedirectResponse Code 201 mit Location Header beim erfolgreichen Anlegen der Resource
      * @throws AuthorizationException Wenn der User keine Berechtigung hat für den Speicherstand ein Einladungslink zu erstellen
      * @see InvitationLink
      * @see InvitationLinkPolicy
      */
-    public function store(Request $request, TokenService $tokenService): Response
+    public function store(Request $request, TokenService $tokenService): \Illuminate\Http\RedirectResponse
     {
         $validate = $request->validate([
-            "expiry_date" => "required|date",
+            "expiry_date" => "nullable|date",
             "permission" => "required|numeric|min:0|max:1",
             "save_id" => "required|exists:saves,id"
         ]);
@@ -59,7 +60,7 @@ class InvitationLinkController extends Controller
         $invitation_link->save_id = $validate["save_id"];
         $invitation_link->token = $tokenService->createToken();
         $invitation_link->save();
-        return response()->created('invitation_link', $invitation_link);
+        return response()->redirectToRoute('invitation-link.show', ['invitation_link' => $invitation_link->token]);
     }
 
     /**
@@ -95,7 +96,7 @@ class InvitationLinkController extends Controller
         $this->authorize("update", $invitation_link);
 
         $validate = $request->validate([
-            "expiry_date" => "date",
+            "expiry_date" => "nullable|date",
             "permission" => "numeric|min:0|max:1"
         ]);
 
@@ -138,11 +139,26 @@ class InvitationLinkController extends Controller
         $user = $request->user();
         $invitationLink = InvitationLink::whereToken($token)->firstOrFail();
 
-        if (Carbon::now() < $invitationLink->expiry_date) {
+        if (is_null($invitationLink->expiry_date) || Carbon::now() < $invitationLink->expiry_date) {
 
             $save = $invitationLink->safe;
 
-            $save->contributors()->attach($user, ["permission" => $invitationLink->permission]);
+            $existingContribution = $save->sharedSaves()->where('user_id', '=', $user->id)->first();
+
+            if (is_null($existingContribution)) {
+                $save->contributors()->attach($user, ["permission" => $invitationLink->permission]);
+            } else {
+                $this->authorize('acceptDecline', $existingContribution);
+
+                $permission = $existingContribution->permission;
+
+                $existingContribution->accept();
+                // check if new permission is equal or higher than old permission
+                if (PermissionHelper::isAtLeastPermission($permission, $invitationLink->permission)) {
+                    $existingContribution->permission = $permission;
+                    $existingContribution->save();
+                }
+            }
 
             return response()->noContent(Response::HTTP_OK);
         } else {

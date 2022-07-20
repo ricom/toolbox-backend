@@ -33,7 +33,8 @@ class InvitationLinkPolicy
      */
     public function view(User $user, InvitationLink $invitationLink): bool
     {
-        return true;
+        $shared_save = $invitationLink->safe->sharedSaves()->where('user_id', $user->id)->first();
+        return is_null($shared_save) || !$shared_save->revoked;
     }
 
     /**

@@ -71,4 +71,16 @@ class SharedSave extends Pivot
         return $this->belongsTo(Save::class, "save_id");
     }
 
+    public function accept()
+    {
+        $this->accepted = true;
+        $this->declined = false;
+    }
+
+    public function decline()
+    {
+        $this->accepted = false;
+        $this->declined = true;
+    }
+
 }

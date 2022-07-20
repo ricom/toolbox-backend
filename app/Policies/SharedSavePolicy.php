@@ -94,7 +94,7 @@ class SharedSavePolicy
      */
     public function acceptDecline(User $user, SharedSave $sharedSave): bool
     {
-        return $sharedSave->user_id === $user->id;
+        return $sharedSave->user_id === $user->id && !$sharedSave->revoked;
     }
 
     /**

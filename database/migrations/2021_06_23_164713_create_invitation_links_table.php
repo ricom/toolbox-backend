@@ -14,8 +14,9 @@ class CreateInvitationLinksTable extends Migration
     public function up()
     {
         Schema::create('invitation_links', function (Blueprint $table) {
-            $table->id();
             $table->string("token")->unique()->index();
+            $table->primary("token");
+
             $table->timestamp("expiry_date")->nullable();
             $table->integer("permission");
             $table->foreignId("save_id")->constrained(); // onDelete and onUpdate added in `add_on_delete_cascade` migration

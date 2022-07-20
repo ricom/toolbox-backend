@@ -44,7 +44,7 @@ Route::group(["middleware" => ["auth:api", "activityLog"]], function () {
         "invitation-link" => InvitationLinkController::class,
     ]);
 
-    Route::apiResource('settings', SettingController::class)->only(["index","show"]);
+    Route::apiResource('settings', SettingController::class)->only(["index", "show"]);
 
     Route::apiResource('users.settings', UserSettingController::class);
 
@@ -64,13 +64,13 @@ Route::group(["middleware" => ["auth:api", "activityLog"]], function () {
 
 
     // Users
-    Route::get('users/{user}/saves', [\App\Http\Controllers\UserSavesController::class,'index']);
+    Route::get('users/{user}/saves', [\App\Http\Controllers\UserSavesController::class, 'index']);
 
     Route::apiResource('users', UserController::class)->except('store');
 
     // InvitationLink
     Route::get('saves/{save}/invitation-links', [InvitationLinkController::class, "saveIndex"]);
-    Route::get('invitation-link/{token}/accept', 'App\Http\Controllers\InvitationLinkController@acceptInvite');
+    Route::put('invitation-link/{token}/accept', [InvitationLinkController::class, "acceptInvite"]);
 
 
 });

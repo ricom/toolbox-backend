@@ -148,8 +148,7 @@ class SharedSaveController extends Controller
     {
         $this->authorize("acceptDecline", $sharedSave);
         if (!$sharedSave->revoked) {
-            $sharedSave->declined = false;
-            $sharedSave->accepted = true;
+            $sharedSave->accept();
             $sharedSave->save();
             return \response()->noContent(Response::HTTP_OK);
         } else {
@@ -170,8 +169,7 @@ class SharedSaveController extends Controller
     public function decline(Request $request, SharedSave $sharedSave)
     {
         $this->authorize("acceptDecline", $sharedSave);
-        $sharedSave->accepted = false;
-        $sharedSave->declined = true;
+        $sharedSave->decline();
         $sharedSave->save();
         return \response(null, Response::HTTP_OK);
     }
