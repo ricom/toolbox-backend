@@ -66,4 +66,17 @@ class UserPolicy
     {
         return $user->id === $model->id;
     }
+
+    /**
+     * prüft, ob ein User die User mithilfe des suchstrings suchen darf
+     *
+     * standardmäßig true
+     *
+     * @param User $user
+     * @return bool
+     */
+    public function searchAny(User $user, string $searchString): bool
+    {
+        return true;
+    }
 }

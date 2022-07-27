@@ -2,8 +2,8 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Requests\UserRequest;
 use App\Http\Resources\UserResource;
+use App\Http\Resources\UserSearchResultResource;
 use App\Mail\AccountDeleteEmail;
 use App\Models\EmailVerification;
 use App\Models\User;
@@ -11,7 +11,6 @@ use App\Policies\UserPolicy;
 use App\Rules\EmailBlockList;
 use App\Services\EmailService;
 use App\Services\UserService;
-use Egulias\EmailValidator\EmailValidator;
 use Exception;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Http\JsonResponse;
@@ -225,5 +224,39 @@ class UserController extends Controller
             "reason" => $reason,
         ]]);
 
+    }
+
+    /**
+     * gibt User Vorschläge für einen Suchstring zurück.
+     *
+     * Durchsucht zuerst die E-Mail spalte und wenn eine genaue übereinstimmung gibt, wird diese zurückgegeben.
+     * Anschließend wird die Username nach dem Suchstring als substring des usernamen durchsucht.
+     * @param Request $request
+     * @return AnonymousResourceCollection eine limitierte Anzahl an User Vorschlägen
+     */
+    public function searchUser(Request $request): AnonymousResourceCollection
+    {
+
+
+        $validated = $request->validate([
+            "name" => ["required", "string"]
+        ]);
+
+
+        $name = $validated["name"];
+
+        $this->authorize('searchAny', [User::class, $name]);
+
+        $mailUsers = User::whereEmail($name)->limit(1)->get();
+
+        if ($mailUsers->count() > 0) {
+            return UserSearchResultResource::collection($mailUsers);
+        } else if ($request->user()->anonymous === true) {
+            return UserSearchResultResource::collection([]);
+        }
+
+        $usernameUsers = User::where('username', 'LIKE', '%' . $name . '%')->limit(5)->get();
+
+        return UserSearchResultResource::collection($usernameUsers);
     }
 }
