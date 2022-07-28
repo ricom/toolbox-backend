@@ -59,7 +59,7 @@ class InvitationLinkController extends Controller
         $invitation_link->save_id = $validate["save_id"];
         $invitation_link->token = $tokenService->createToken();
         $invitation_link->save();
-        return response()->created('invitation_link', $invitation_link);
+        return response()->created('invitation_link', new InvitationLinkResource($invitation_link));
     }
 
     /**

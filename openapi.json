@@ -1,0 +1,689 @@
+{
+    "openapi": "3.0.2",
+    "info": {
+        "title": "Toolbox",
+        "contact": {
+            "email": "strategie-navigator@jade-hs.de"
+        },
+        "license": {
+            "name": "GPL-3.0",
+            "url": "https://www.gnu.org/licenses/gpl-3.0.de.html"
+        },
+        "version": "1.0.0"
+    },
+    "servers": [
+        {
+            "url": "http://toolbox-backend.test",
+            "description": "Lokaler Entwicklungsserver"
+        },
+        {
+            "url": "https://strategie-navigator.jade-hs.de",
+            "description": "Production Server"
+        }
+    ],
+    "paths": {
+        "/api/users": {
+            "post": {
+                "tags": [
+                    "users"
+                ],
+                "summary": "Erstellt einen neuen User",
+                "requestBody": {
+                    "description": "Nutzerdaten",
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "required": [
+                                    "username",
+                                    "email",
+                                    "password"
+                                ],
+                                "properties": {
+                                    "username": {
+                                        "type": "string",
+                                        "example": "max"
+                                    },
+                                    "email": {
+                                        "type": "string",
+                                        "example": "max.mustermann@jade-hs.de"
+                                    },
+                                    "password": {
+                                        "type": "string",
+                                        "example": "asdfasdfsadf"
+                                    },
+                                    "anonymous_id": {
+                                        "description": "id des anonymen users von dem alle Einstellungen und Daten \u00fcbernommen werden sollen",
+                                        "type": "integer",
+                                        "example": 30
+                                    },
+                                    "anonymous_password": {
+                                        "description": "password des anonymen benutzerkontos, welcher durch die anonymous_id angegeben wird.",
+                                        "type": "string",
+                                        "example": "passwortd"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Successful response",
+                        "headers": {
+                            "Location": {
+                                "description": "Relativer Link zu der erstellen Ressource",
+                                "schema": {
+                                    "type": "string"
+                                }
+                            }
+                        },
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/components/schemas/complete_user"
+                                        }
+                                    }
+                                }
+                            }
+                        },
+                        "links": {
+                            "": {
+                                "operationId": "showUser",
+                                "description": "Id des erstellten Nutzers kann als path variable in der showUser Route verwendet werden"
+                            }
+                        }
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/unauthenticated"
+                    },
+                    "403": {
+                        "$ref": "#/components/responses/unauthorized"
+                    },
+                    "422": {
+                        "$ref": "#/components/responses/validation_failed"
+                    }
+                },
+                "security": []
+            },
+            "get": {
+                "tags": [
+                    "users"
+                ],
+                "summary": "Zeigt alle User an",
+                "parameters": [
+                    {
+                        "name": "limit",
+                        "in": "query",
+                        "description": "Begrenzt die Anzahl der pro Seite angezeigten Ergebnisse",
+                        "required": false,
+                        "schema": {
+                            "default": 50,
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "allOf": [
+                                        {
+                                            "$ref": "#/components/schemas/pagination"
+                                        },
+                                        {
+                                            "type": "object",
+                                            "properties": {
+                                                "data": {
+                                                    "type": "array",
+                                                    "items": {
+                                                        "oneOf": [
+                                                            {
+                                                                "$ref": "#/components/schemas/simple_user"
+                                                            },
+                                                            {
+                                                                "$ref": "#/components/schemas/complete_user"
+                                                            }
+                                                        ]
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/unauthenticated"
+                    },
+                    "403": {
+                        "$ref": "#/components/responses/unauthorized"
+                    }
+                }
+            }
+        },
+        "/api/users/anonymous": {
+            "post": {
+                "tags": [
+                    "users"
+                ],
+                "summary": "Erstellt einen Anonymen User.",
+                "description": "Username und Password des neuen Users werden im Body zur\u00fcckgegeben",
+                "responses": {
+                    "201": {
+                        "description": "Successful response",
+                        "headers": {
+                            "Location": {
+                                "description": "Relativer Link zu der erstellen Ressource",
+                                "schema": {
+                                    "type": "string"
+                                }
+                            }
+                        },
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "username": {
+                                            "description": "Nutzername des erstellten anonymen Nutzers. Muss genutzt werden um den anonymen Nutzer anzumelden",
+                                            "type": "string",
+                                            "example": "anonymous136289"
+                                        },
+                                        "password": {
+                                            "description": "Passwort des erstellten anonymen Nutzers. Muss genutzt werden um den anonymen Nutzer anzumelden",
+                                            "type": "string",
+                                            "example": "dsfakd\u00f6sfj\u00f6ldsaf"
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/unauthenticated"
+                    },
+                    "403": {
+                        "$ref": "#/components/responses/unauthorized"
+                    }
+                },
+                "security": []
+            }
+        },
+        "/api/checkUsername": {
+            "get": {
+                "tags": [
+                    "users"
+                ],
+                "summary": "Gibt zur\u00fcck ob der angefragte Username bereits benutzt wird",
+                "parameters": [
+                    {
+                        "name": "username",
+                        "in": "query",
+                        "description": "Username der \u00fcberpr\u00fcft werden soll",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "$ref": "#/components/responses/availability"
+                    },
+                    "422": {
+                        "$ref": "#/components/responses/validation_failed"
+                    }
+                },
+                "security": []
+            }
+        },
+        "/api/checkEmail": {
+            "get": {
+                "tags": [
+                    "users"
+                ],
+                "summary": "Gibt zur\u00fcck, ob die angefragte E-Mail bereits benutzt wird",
+                "description": "Es werden auch die noch nicht best\u00e4tigten E-Mail-Adressen ber\u00fccksichtigt",
+                "parameters": [
+                    {
+                        "name": "email",
+                        "in": "query",
+                        "description": "Email die \u00fcberpr\u00fcft werden soll",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "$ref": "#/components/responses/availability"
+                    },
+                    "422": {
+                        "$ref": "#/components/responses/validation_failed"
+                    }
+                },
+                "security": []
+            }
+        },
+        "/api/users/{user}": {
+            "get": {
+                "tags": [
+                    "users"
+                ],
+                "summary": "Zeigt einen ausgew\u00e4hlten User an",
+                "operationId": "showUser",
+                "parameters": [
+                    {
+                        "name": "user",
+                        "in": "path",
+                        "description": "Der in der Url definierte User",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "oneOf": [
+                                                {
+                                                    "$ref": "#/components/schemas/complete_user"
+                                                },
+                                                {
+                                                    "$ref": "#/components/schemas/simple_user"
+                                                }
+                                            ]
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/unauthenticated"
+                    },
+                    "403": {
+                        "$ref": "#/components/responses/unauthorized"
+                    },
+                    "404": {
+                        "$ref": "#/components/responses/not_found"
+                    }
+                }
+            },
+            "put": {
+                "tags": [
+                    "users"
+                ],
+                "summary": "\u00c4ndert die Attribute eines ausgew\u00e4hlten Nutzers zu den \u00fcbergebenen",
+                "operationId": "test",
+                "parameters": [
+                    {
+                        "name": "user",
+                        "in": "path",
+                        "description": "Der in der Url definierte User",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "description": "Nutzerdaten",
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "required": [
+                                    "current_password"
+                                ],
+                                "properties": {
+                                    "username": {
+                                        "description": "new username",
+                                        "type": "string"
+                                    },
+                                    "password": {
+                                        "description": "new password",
+                                        "type": "string"
+                                    },
+                                    "current_password": {
+                                        "description": "current_password",
+                                        "type": "string"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "401": {
+                        "$ref": "#/components/responses/unauthenticated"
+                    },
+                    "403": {
+                        "$ref": "#/components/responses/unauthorized"
+                    },
+                    "404": {
+                        "$ref": "#/components/responses/not_found"
+                    },
+                    "422": {
+                        "$ref": "#/components/responses/validation_failed"
+                    }
+                }
+            },
+            "delete": {
+                "tags": [
+                    "users"
+                ],
+                "summary": "L\u00f6scht den ausgew\u00e4hlten User",
+                "parameters": [
+                    {
+                        "name": "user",
+                        "in": "path",
+                        "description": "Den in der Url definierten User",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful response"
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/unauthenticated"
+                    },
+                    "403": {
+                        "$ref": "#/components/responses/unauthorized"
+                    },
+                    "404": {
+                        "$ref": "#/components/responses/not_found"
+                    }
+                }
+            }
+        }
+    },
+    "components": {
+        "schemas": {
+            "complete_user": {
+                "allOf": [
+                    {
+                        "$ref": "#/components/schemas/simple_user"
+                    },
+                    {
+                        "description": "Diese Daten sind nur mit den ausreichenden Rechten verf\u00fcgbar",
+                        "type": "object",
+                        "properties": {
+                            "email": {
+                                "description": "Email des Nutzers",
+                                "type": "string",
+                                "nullable": true
+                            },
+                            "owned_saves": {
+                                "description": "Id der Speicherst\u00e4nde, welche dieser Nutzer besitzt",
+                                "type": "array",
+                                "items": {
+                                    "type": "integer"
+                                }
+                            },
+                            "schared_saves": {
+                                "description": "Id der Speicherst\u00e4nde, welchem diesem Nutzer geteilt wurden und die dieser angenommen hat",
+                                "type": "array",
+                                "items": {
+                                    "$ref": "#/components/schemas/shared_save_of_user"
+                                }
+                            },
+                            "invitations": {
+                                "description": "Id der Speicherst\u00e4nde, zu denen dieser Nutzer eingeladen wurde und die noch nicht angenommen wurden",
+                                "type": "array",
+                                "items": {
+                                    "$ref": "#/components/schemas/shared_save_of_user"
+                                }
+                            }
+                        }
+                    }
+                ]
+            },
+            "pagination": {
+                "type": "object",
+                "properties": {
+                    "links": {
+                        "type": "object",
+                        "properties": {
+                            "first": {
+                                "description": "Link zur ersten Seite",
+                                "type": "string"
+                            },
+                            "last": {
+                                "description": "Link zur letzen Seite",
+                                "type": "string"
+                            },
+                            "prev": {
+                                "description": "Link zur vorherigen Seite",
+                                "type": "string",
+                                "nullable": true
+                            },
+                            "next": {
+                                "description": "Link zur n\u00e4chsten Seite",
+                                "type": "string",
+                                "nullable": true
+                            }
+                        }
+                    },
+                    "meta": {
+                        "type": "object",
+                        "properties": {
+                            "current_page": {
+                                "type": "integer",
+                                "example": 2
+                            },
+                            "from": {
+                                "description": "Position des ersten Eintrags dieser Seite von allen Eintr\u00e4gen",
+                                "type": "integer",
+                                "example": 15
+                            },
+                            "last_page": {
+                                "type": "integer",
+                                "example": 3
+                            },
+                            "path": {
+                                "description": "link zur Startseite dieser Pagination",
+                                "type": "integer"
+                            },
+                            "per_page": {
+                                "description": "Anzahl der Eintr\u00e4ge pro Seite",
+                                "type": "integer",
+                                "example": 15
+                            },
+                            "to": {
+                                "description": "Position des letzen Eintrags dieser Seite von allen Eintr\u00e4gen",
+                                "type": "integer",
+                                "example": 29
+                            },
+                            "total": {
+                                "description": "Anzahl aller Eintr\u00e4ge \u00fcber alle Seiten",
+                                "type": "integer",
+                                "example": 38
+                            }
+                        }
+                    }
+                }
+            },
+            "shared_save_of_user": {
+                "type": "object",
+                "properties": {
+                    "save_id": {
+                        "description": "Id des Speicherstands, welcher geteilt wurde",
+                        "type": "integer"
+                    },
+                    "permission": {
+                        "description": "Rechte die die geteilte person besitzt. 0: Leserechte \\t 1: Schreib- und Leserechte \\t 2: Adminrechte",
+                        "enum": [
+                            0,
+                            1,
+                            2
+                        ],
+                        "type": "integer"
+                    }
+                }
+            },
+            "simple_user": {
+                "description": "Dieses Schema wird zur\u00fcck gegeben, wenn der aktuelle Nutzer nicht genugRechte hat um private informationen \u00fcber den Nutzer zu sehen",
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "description": "Id des Nutzers",
+                        "type": "integer",
+                        "example": 1
+                    },
+                    "username": {
+                        "description": "Name des nutzers",
+                        "type": "string",
+                        "example": "max musterman"
+                    },
+                    "anonymous": {
+                        "description": "Gibt an ab dieser User ein anonymer nutzer ist",
+                        "type": "boolean",
+                        "example": true
+                    },
+                    "created_at": {
+                        "description": "Zeitpunkt an dem dieses Nutzerkonto erstellt wurde. Wenn dieses Nutzerkonto aus einem anonymen Konto erstellt wurde, wird das erstelldatum den anonymen Kontos angezeigt",
+                        "format": "date-time",
+                        "type": "string"
+                    }
+                }
+            }
+        },
+        "responses": {
+            "availability": {
+                "description": "Zeigt ob eine Ressource verf\u00fcgbar ist",
+                "content": {
+                    "application/json": {
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "data": {
+                                    "type": "object",
+                                    "properties": {
+                                        "available": {
+                                            "description": "Ob die ressource verf\u00fcgbar ist",
+                                            "type": "boolean",
+                                            "example": false
+                                        },
+                                        "reason": {
+                                            "description": "Information wieso dieses Ressource nicht verf\u00fcgbar ist. Es k\u00f6nnten noch weitere Enum werte hinzukommen",
+                                            "enum": [
+                                                "taken",
+                                                "blocked",
+                                                "invalid"
+                                            ],
+                                            "type": "string",
+                                            "example": "taken"
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "not_found": {
+                "description": "Entity not found"
+            },
+            "unauthenticated": {
+                "description": "The current user isn't authenticated",
+                "content": {
+                    "application/json": {
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "message": {
+                                    "default": "Unauthenticated",
+                                    "type": "string"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "unauthorized": {
+                "description": "The current user isn't authorized to do this action",
+                "content": {
+                    "application/json": {
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "message": {
+                                    "default": "This action is unauthorized.",
+                                    "type": "string"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "validation_failed": {
+                "description": "Ein oder mehrere Argumente sind invalide",
+                "content": {
+                    "application/json": {
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "message": {
+                                    "description": "Eine Nachricht die einem Nutzer angezeigt werden k\u00f6nnte",
+                                    "type": "string"
+                                },
+                                "errors": {
+                                    "description": "Keys des Objects haben den selben namen wie in dem Request Body",
+                                    "type": "array",
+                                    "items": {
+                                        "description": "Fehlermeldungen eines Arguments. Der Key hat den selben namen wie das Argument",
+                                        "type": "object",
+                                        "additionalProperties": {
+                                            "type": "array",
+                                            "items": {
+                                                "type": "string"
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "securitySchemes": {
+            "BearerToken": {
+                "type": "http",
+                "scheme": "bearer",
+                "bearerFormat": "JWT"
+            }
+        }
+    },
+    "security": [
+        {
+            "BearerToken": []
+        }
+    ],
+    "tags": [
+        {
+            "name": "users",
+            "description": "User"
+        }
+    ]
+}

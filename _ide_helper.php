@@ -17118,7 +17118,7 @@ namespace Illuminate\Contracts\Routing {
          *
          *
          * @param string $route_name
-         * @param Model $model
+         * @param $model
          * @return Response
          * @static
          * @see \App\Providers\AppServiceProvider::boot()

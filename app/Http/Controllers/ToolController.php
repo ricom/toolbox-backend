@@ -47,7 +47,7 @@ class ToolController extends Controller
         $tool = new Tool($request->input());
         $tool->save();
 
-        return response()->created('tools',$tool);
+        return response()->created('tools', new ToolResource($tool));
     }
 
     /** Zeigt ein ausgewähltes Tool an

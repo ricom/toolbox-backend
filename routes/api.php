@@ -60,7 +60,6 @@ Route::group(["middleware" => ["auth:api", "activityLog"]], function () {
     Route::get("/saves/{save}/contributors", [SharedSaveController::class, "indexSave"])->name("contributions.index.save");
     Route::get("/users/{user}/contributions", [SharedSaveController::class, "indexUser"])->name("contributions.index.user");
     Route::post("/saves/{save}/contributors/{user}", [SharedSaveController::class, "store"])->name("contribution.store.save");
-    Route::post("/users/{user}/contributions/{save}", [SharedSaveController::class, "storeReverse"])->name("contribution.store.user");
 
 
     // Users
